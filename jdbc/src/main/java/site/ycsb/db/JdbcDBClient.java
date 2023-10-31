@@ -230,9 +230,9 @@ public class JdbcDBClient extends DB {
       createTableSql += USER_TABLE + "_value_" + i + " STRING,\n";
     }
     createTableSql += USER_TABLE + "_value_" + columnCount + " STRING)\n";
-    createTableSql += "UNIQUE KEY(" + PRIMARY_KEY + ")\n";
+    createTableSql += "PRIMARY KEY(" + PRIMARY_KEY + ")\n";
     createTableSql += "DISTRIBUTED BY HASH(" + PRIMARY_KEY + ")\n";
-    createTableSql += "PROPERTIES(\"replication_num\"=\"1\",\"store_row_column\"=\"true\", \"enable_unique_key_merge_on_write\"=\"true\")\n";
+    createTableSql += "PROPERTIES(\"replication_num\"=\"1\",\"storage_type\" = \"column_with_row\")\n";
     System.out.println("create table sql :" + createTableSql);
 
     try {
@@ -470,13 +470,14 @@ public class JdbcDBClient extends DB {
         }
         readStatement.setString(1, key);
       }
-      
       ResultSet resultSet = readStatement.executeQuery();
       if (!resultSet.next()) {
+        System.out.println("not found");
         resultSet.close();
         return Status.NOT_FOUND;
-      }
+      } 
       if (result != null && fields != null) {
+        System.out.println("---- found");
         for (String field : fields) {
           String value = resultSet.getString(field);
           result.put(field, new StringByteIterator(value));
@@ -485,7 +486,7 @@ public class JdbcDBClient extends DB {
       resultSet.close();
       return Status.OK;
     } catch (SQLException e) {
-      System.err.println("Error in processing read of table " + tableName + ": " + e);
+      System.err.println("Error in processing read of table " + tableName + ": " + e.getCause());
       return Status.ERROR;
     }
   }
@@ -522,7 +523,7 @@ public class JdbcDBClient extends DB {
       resultSet.close();
       return Status.OK;
     } catch (SQLException e) {
-      System.err.println("Error in processing scan of table: " + tableName + e);
+      System.err.println("Error in processing scan of table: " + tableName + e.getStackTrace());
       return Status.ERROR;
     }
   }
@@ -655,7 +656,7 @@ public class JdbcDBClient extends DB {
       }
       return Status.UNEXPECTED_STATE;
     } catch (SQLException e) {
-      System.err.println("Error in processing insert to table: " + tableName + e);
+      System.err.println("Error in processing insert to table: " + tableName + e.getStackTrace());
       return Status.ERROR;
     }
   }
@@ -719,6 +720,7 @@ public class JdbcDBClient extends DB {
       return Status.OK;
     }
     // Send the batch of updates
+    System.out.println("batch == : " + numRowsInBatch + ", " + batchSize);
     String buff;
     buff = bufferString.toString();
     bufferString = new StringBuilder();
@@ -756,6 +758,7 @@ public class JdbcDBClient extends DB {
         }
         System.out.println("Get load result: " + loadResult);
       } catch (IOException e) {
+        System.out.println("stream load error: ");
         e.printStackTrace();
         return Status.ERROR;
       }
