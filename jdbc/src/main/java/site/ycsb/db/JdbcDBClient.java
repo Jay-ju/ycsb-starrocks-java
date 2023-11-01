@@ -232,7 +232,7 @@ public class JdbcDBClient extends DB {
     createTableSql += USER_TABLE + "_value_" + columnCount + " STRING)\n";
     createTableSql += "PRIMARY KEY(" + PRIMARY_KEY + ")\n";
     createTableSql += "DISTRIBUTED BY HASH(" + PRIMARY_KEY + ")\n";
-    createTableSql += "PROPERTIES(\"replication_num\"=\"1\",\"storage_type\" = \"column_with_row\")\n";
+    createTableSql += "PROPERTIES(\"replication_num\"=\"1\",\"storage_type\" = \"column\")\n";
     System.out.println("create table sql :" + createTableSql);
 
     try {
